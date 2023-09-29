@@ -36,7 +36,7 @@ def get_review_by_id(review_id):
                  strict_slashes=False)
 def delete_review_by_id(review_id):
     """ Deletes review by id """
-    review = storage.get(Review, place_id)
+    review = storage.get(Review, review_id)
     if review is None:
         abort(404)
     review.delete()
@@ -46,7 +46,7 @@ def delete_review_by_id(review_id):
 
 @app_views.route('/places/<string:place_id>/reviews', methods=['POST'],
                  strict_slashes=False)
-def create_review(city_id):
+def create_review(place_id):
     """ creates a new review for a place """
     place = storage.get(Place, place_id)
     if place is None:

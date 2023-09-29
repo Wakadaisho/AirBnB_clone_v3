@@ -9,6 +9,7 @@ from models import storage
 from models.user import User
 from models.city import City
 from models.place import Place
+from models.state import State
 
 
 @app_views.route('/cities/<string:city_id>/places',
@@ -137,6 +138,6 @@ def search_places_by_id():
     for place in list_places:
         dct = place.to_dict()
         dct.pop('amenities', None)
-        places.append(d)
+        places.append(dct)
 
     return jsonify(places)

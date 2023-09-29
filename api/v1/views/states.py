@@ -10,7 +10,7 @@ from models.state import State
 
 
 @app_views.route("/states")
-def states():
+def get_all_states():
     """Return all the state objects"""
     return [state.to_dict() for state in storage.all(State).values()]
 
@@ -30,7 +30,7 @@ def drop_state(state_id):
     state = storage.get(State, state_id)
     if not state:
         abort(404)
-    storage.delete(state)
+    state.delete()
     storage.save()
     return {}, 200
 
@@ -52,12 +52,12 @@ def insert_state():
 def update_state(state_id):
     """Update a State object"""
     attrs = ['name']
-    obj = request.get_json()
-    if not obj:
-        return {"error": "Not a JSON"}, 400
     state = storage.get(State, state_id)
     if state is None:
         abort(404)
+    obj = request.get_json()
+    if not obj:
+        return {"error": "Not a JSON"}, 400
     for attr in attrs:
         if attr in obj:
             setattr(state, attr, obj[attr])

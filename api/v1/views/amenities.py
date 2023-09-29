@@ -10,7 +10,7 @@ from models.amenity import Amenity
 
 
 @app_views.route("/amenities")
-def amenities():
+def get_all_amenities():
     """Return all the amenity objects"""
     return [amenity.to_dict() for amenity in storage.all(Amenity).values()]
 
@@ -30,7 +30,7 @@ def drop_amenity(amenity_id):
     amenity = storage.get(Amenity, amenity_id)
     if not amenity:
         abort(404)
-    storage.delete(amenity)
+    amenity.delete()
     storage.save()
     return {}, 200
 

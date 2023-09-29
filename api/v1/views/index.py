@@ -13,14 +13,17 @@ from models.review import Review
 from models.state import State
 from models.user import User
 
+
 @app_views.route("/status", strict_slashes=False)
 def status():
     """Return the operational status of the api endpoint"""
     return jsonify({"status": "OK"}), 200
 
+
 @app_views.route("/stats", strict_slashes=False)
 def stats():
     """Return the operational status of the api endpoint"""
     classes = {"amenities": Amenity, "cities": City,
-           "places": Place, "reviews": Review, "states": State, "users": User}
+               "places": Place, "reviews": Review,
+               "states": State, "users": User}
     return jsonify({k: storage.count(v) for k, v in classes.items()})

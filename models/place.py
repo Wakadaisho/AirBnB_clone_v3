@@ -3,7 +3,6 @@
 import models
 from models.base_model import BaseModel, Base
 from os import getenv
-import sqlalchemy
 from sqlalchemy import Column, String, Integer, Float, ForeignKey, Table
 from sqlalchemy.orm import relationship
 
@@ -69,11 +68,28 @@ class Place(BaseModel, Base):
 
         @property
         def amenities(self):
-            """getter attribute returns the list of Amenity instances"""
+            """The amenity getter."""
+            return self.amenity_ids
+
+        @amenities.setter
+        def amenities(self, value=None):
+            """ The Amenity setter appends ids to the attributes"""
             from models.amenity import Amenity
-            amenity_list = []
-            all_amenities = models.storage.all(Amenity)
-            for amenity in all_amenities.values():
-                if amenity.place_id == self.id:
-                    amenity_list.append(amenity)
-            return amenity_list
+            from models import storage
+            if isinstance(value, list):
+                self.amenity_ids = value.copy()
+            else:
+                amenity = storage.get(Amenity, value.id)
+                if amenity and value.id not in self.amenity_ids:
+                    self.amenity_ids.append(value.id)
+
+        def to_dict(self):
+            """returns a dictionary containing all
+            keys/values of the instance"""
+            new_dict = super().to_dict()
+            if len(self.amenities):
+                new_dict.update({'amenity_ids': self.amenities})
+            else:
+                new_dict.pop('amenity_ids', None)
+
+            return new_dict

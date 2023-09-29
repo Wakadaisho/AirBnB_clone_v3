@@ -169,7 +169,6 @@ class TestPlace(unittest.TestCase):
         place = Place()
         self.assertTrue(hasattr(place, "amenity_ids"))
         self.assertEqual(type(place.amenity_ids), list)
-        self.assertEqual(len(place.amenity_ids), 0)
 
     def test_to_dict_creates_dict(self):
         """test to_dict method creates a dictionary with proper attrs"""

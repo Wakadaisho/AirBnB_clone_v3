@@ -18,13 +18,6 @@ class TestPlaces_ReviewsDocs(unittest.TestCase):
 
     all_funcs = inspect.getmembers(module, inspect.isfunction)
 
-    @classmethod
-    def setUpClass(cls):
-        print('\n\n.................................')
-        print('..... Testing Documentation .....')
-        print('.......  Places_Reviews API  .......')
-        print('.................................\n\n')
-
     def test_doc_file(self):
         """... documentation for the file"""
         actual = module.__doc__

@@ -9,7 +9,7 @@ from models import storage
 from models.user import User
 
 
-@app_views.route('/users', methods=['GET'], strict_slashes=False)
+@app_views.route('/users', methods=['GET'])
 def get_users():
     """Gets list of all user objs"""
     users = storage.all(User)
@@ -17,7 +17,7 @@ def get_users():
     return jsonify(user_lst)
 
 
-@app_views.route('/users/<user_id>', methods=['GET'], strict_slashes=False)
+@app_views.route('/users/<user_id>', methods=['GET'])
 def get_user_by_id(user_id):
     """ Retrieves a user by ID """
     user = storage.get(User, user_id)
@@ -27,7 +27,7 @@ def get_user_by_id(user_id):
         abort(404)
 
 
-@app_views.route('/users/<user_id>', methods=['DELETE'], strict_slashes=False)
+@app_views.route('/users/<user_id>', methods=['DELETE'])
 def delete_user_by_id(user_id):
     """Deletes a User object by ID """
     user = storage.get(User, user_id)
@@ -39,7 +39,7 @@ def delete_user_by_id(user_id):
         abort(404)
 
 
-@app_views.route('/users', methods=['POST'], strict_slashes=False)
+@app_views.route('/users', methods=['POST'])
 def create_user():
     """Create a new user."""
     if not request.get_json():
@@ -54,7 +54,7 @@ def create_user():
     return jsonify(new_user.to_dict()), 201
 
 
-@app_views.route('/users/<user_id>', methods=['PUT'], strict_slashes=False)
+@app_views.route('/users/<user_id>', methods=['PUT'])
 def update_user_by_id(user_id):
     """ Updates a User object by ID """
     user = storage.get(User, user_id)

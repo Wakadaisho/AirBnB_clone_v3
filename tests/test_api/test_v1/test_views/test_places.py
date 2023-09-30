@@ -1,22 +1,24 @@
 #!/usr/bin/python3
 """
-Contains the TestStateDocs classes
+Contains the TestUserDocs classes
 """
 
 from api.v1.app import app
 from api.v1.views import places
 from datetime import datetime
 import inspect
-from models import storage
+from models import storage, storage_t
+from models.amenity import Amenity
 from models.city import City
 from models.state import State
 from models.place import Place
 from models.user import User
+from random import randrange
 import pep8
 import unittest
 
 
-class TestStatesDocs(unittest.TestCase):
+class TestUsersDocs(unittest.TestCase):
     """Tests to check the documentation and style of places"""
     @classmethod
     def setUpClass(cls):
@@ -47,7 +49,7 @@ class TestStatesDocs(unittest.TestCase):
                         "places.py needs a docstring")
 
     def test_place_func_docstrings(self):
-        """Test for the presence of docstrings in State methods"""
+        """Test for the presence of docstrings in User methods"""
         for func in self.place_f:
             self.assertIsNot(func[1].__doc__, None,
                              "{:s} method needs a docstring".format(func[0]))
@@ -55,7 +57,7 @@ class TestStatesDocs(unittest.TestCase):
                             "{:s} method needs a docstring".format(func[0]))
 
 
-class TestStateRoutes(unittest.TestCase):
+class TestUserRoutes(unittest.TestCase):
     """Test the places api routes"""
     @classmethod
     def setUpClass(cls):
@@ -76,10 +78,12 @@ class TestStateRoutes(unittest.TestCase):
         city = City(name="Test City", state_id=state.id)
         city.save()
         data = {"name": "New Place"}
+        user = User(email="Test User", password="password")
+        user.save()
         response = self.app.post(f"/api/v1/cities/{city.id}/places", json=data)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json['error'], "Missing user_id")
-        data = {"user_id": 1}
+        data = {"user_id": user.id}
         response = self.app.post(f"/api/v1/cities/{city.id}/places", json=data)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json['error'], "Missing name")
@@ -93,3 +97,71 @@ class TestStateRoutes(unittest.TestCase):
         """Test /places/<place_id> DELETE failure"""
         place = self.app.delete(self.api + "nop")
         self.assertEqual(place.status_code, 404)
+
+    def test_places_search(self):
+        """Test /places_search"""
+        results = self.app.post("/api/v1/places_search",
+                                json="")
+        self.assertEqual(results.status_code, 400)
+        self.assertEqual(results.json['error'], "Not a JSON")
+
+        states = []
+        for i in range(2):
+            state = State(name=f"State {i}")
+            state.save()
+            states.append(state.id)
+
+        cities = []
+        for i in range(5):
+            j = 1 if i >= 2 else 0
+            city = City(name=f"City {i}", state_id=states[j])
+            city.save()
+            cities.append(city.id)
+
+        user = User(email="email", password="password")
+        user.save()
+
+        amenities = []
+        for i in range(50):
+            amenity = Amenity(name=f"Amentiy {i}")
+            amenity.save()
+            amenities.append(amenity)
+
+        places = []
+        for i, city in enumerate(cities):
+            for j in range(0, i+1):
+                place = Place(name=f"Place {i}{j}",
+                              user_id=user.id,
+                              city_id=city)
+                for k in range(5):
+                    if storage_t == 'db':
+                        place.amenities.append(amenities[i * j + k])
+                    else:
+                        place.amenities = amenities[i * j + k]
+                place.save()
+                places.append(place.id)
+
+        results = self.app.post("/api/v1/places_search",
+                                json={"states": [states[0]],
+                                      "cities": [cities[3]]})
+        self.assertEqual(results.status_code, 200)
+        self.assertEqual(len(results.json), 7)
+        filter_amenities = [amenities[randrange(len(amenities))].id
+                            for _ in range(10)]
+        results = self.app.post("/api/v1/places_search",
+                                json={"states": [states[0]],
+                                      "cities": [cities[3]],
+                                      "amenities": filter_amenities})
+        self.assertEqual(results.status_code, 200)
+        places = [storage.get(Place, id)
+                  for id in [place.id for place in results.json]]
+        if storage_t == 'db':
+            self.assertTrue(
+                    all([amenity in [am.to_dict().id for am in place.amenities]
+                         for amenity in filter_amenities
+                         for place in places]))
+        else:
+            self.assertTrue(
+                    all([amenity in [am for am in place.amenities]
+                         for amenity in filter_amenities
+                         for place in places]))

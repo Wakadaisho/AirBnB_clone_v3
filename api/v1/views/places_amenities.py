@@ -4,7 +4,7 @@ Define routes for the places_amenities routes
 """
 
 from api.v1.views import app_views
-from flask import abort, request, jsonify
+from flask import abort, jsonify
 from models import storage, storage_t
 from models.amenity import Amenity
 from models.place import Place
@@ -16,10 +16,12 @@ def get_all_place_amenities(place_id):
     place = storage.get(Place, place_id)
     if not place:
         abort(404)
+    data = []
     if storage_t == 'db':
-        return [amenity.to_dict() for amenity in place.amenities]
+        data = [amenity.to_dict() for amenity in place.amenities]
     else:
-        return [storage.get(Amenity, id).to_dict() for id in place.amenities]
+        data = [storage.get(Amenity, id).to_dict() for id in place.amenities]
+    return jsonify(data)
 
 
 @app_views.route("/places/<place_id>/amenities/<amenity_id>",
@@ -33,9 +35,9 @@ def post_place(place_id, amenity_id):
 
     for a in place.amenities:
         if storage_t == 'db' and a.id == amenity_id:
-            return a.to_dict()
+            return jsonify(a.to_dict())
         elif a == amenity_id:
-            return storage.get(Amenity, a).to_dict()
+            return jsonify(storage.get(Amenity, a).to_dict())
 
     if storage_t == 'db':
         place.amenities.append(amenity)
@@ -43,7 +45,7 @@ def post_place(place_id, amenity_id):
         place.amenities = amenity
 
     storage.save()
-    return amenity.to_dict(), 201
+    return jsonify(amenity.to_dict()), 201
 
 
 @app_views.route("/places/<place_id>/amenities/<amenity_id>",
@@ -59,12 +61,12 @@ def drop_place_amenity(place_id, amenity_id):
         if storage_t == 'db' and a.id == amenity_id:
             place.amenities.remove(a)
             storage.save()
-            return {}, 200
+            return jsonify({}), 200
         elif a == amenity_id:
             amenities = place.amenities.copy()
             amenities.remove(a)
             place.amenities = amenities
             storage.save()
-            return {}, 200
+            return jsonify({}), 200
 
     abort(404)

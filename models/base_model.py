@@ -49,7 +49,8 @@ class BaseModel:
     def __str__(self):
         """String representation of the BaseModel class"""
         dictionary = self.__dict__.copy()
-        dictionary.pop("_sa_instance_state", None)
+        if models.storage_t != 'db':
+            dictionary.pop("_sa_instance_state", None)
         return "[{:s}] ({:s}) {}".format(self.__class__.__name__, self.id,
                                          dictionary)
 

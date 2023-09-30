@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """
-Contains the TestStateDocs classes
+Contains the TestUserDocs classes
 """
 
 from api.v1.app import app
@@ -13,7 +13,7 @@ import unittest
 import json
 
 
-class TestStatesDocs(unittest.TestCase):
+class TestUsersDocs(unittest.TestCase):
     """Tests to check the documentation and style of users"""
     @classmethod
     def setUpClass(cls):
@@ -35,7 +35,7 @@ class TestStatesDocs(unittest.TestCase):
                         "users.py needs a docstring")
 
     def test_user_func_docstrings(self):
-        """Test for the presence of docstrings in State methods"""
+        """Test for the presence of docstrings in User methods"""
         for func in self.user_f:
             self.assertIsNot(func[1].__doc__, None,
                              "{:s} method needs a docstring".format(func[0]))
@@ -43,7 +43,7 @@ class TestStatesDocs(unittest.TestCase):
                             "{:s} method needs a docstring".format(func[0]))
 
 
-class TestStateRoutes(unittest.TestCase):
+class TestUserRoutes(unittest.TestCase):
     """Test the users api routes"""
     @classmethod
     def setUpClass(cls):

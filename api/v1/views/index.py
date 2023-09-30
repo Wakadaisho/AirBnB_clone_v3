@@ -26,4 +26,4 @@ def stats():
     classes = {"amenities": Amenity, "cities": City,
                "places": Place, "reviews": Review,
                "states": State, "users": User}
-    return jsonify({k: storage.count(v) for k, v in classes.items()})
+    return jsonify({k: storage.count(v) for k, v in classes.items()}), 200

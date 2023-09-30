@@ -8,6 +8,9 @@ from api.v1.views import places
 from datetime import datetime
 import inspect
 from models import storage
+from models.city import City
+from models.place import Place
+from models.user import User
 import pep8
 import unittest
 
@@ -64,6 +67,19 @@ class TestStateRoutes(unittest.TestCase):
     def tearDownClass(cls):
         """tearDownClass"""
         storage.close()
+
+    def test_create_place_missing_fields(self):
+        """Test /cities/<city_id>/places POST missing fields"""
+        city = City(name="Test City")
+        city.save()
+        data = {"name": "New Place"}
+        response = self.app.post(f"/api/v1/cities/{city.id}/places", json=data)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json['error'], "Missing user_id")
+        data = {"user_id": 1}
+        response = self.app.post(f"/api/v1/cities/{city.id}/places", json=data)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json['error'], "Missing name")
 
     def test_fail_place_id_route(self):
         """Test /places/<place_id> GET failure"""

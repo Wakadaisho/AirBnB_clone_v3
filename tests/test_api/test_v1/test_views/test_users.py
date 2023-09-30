@@ -10,6 +10,7 @@ import inspect
 from models import storage
 import pep8
 import unittest
+import json
 
 
 class TestStatesDocs(unittest.TestCase):
@@ -25,7 +26,6 @@ class TestStatesDocs(unittest.TestCase):
         result = pep8s.check_files(['api/v1/views/users.py'])
         self.assertEqual(result.total_errors, 0,
                          "Found code style errors (and warnings).")
-
 
     def test_users_module_docstring(self):
         """Test for the users.py module docstring"""
@@ -64,13 +64,37 @@ class TestStateRoutes(unittest.TestCase):
         # Ensure list is returned
         self.assertIsInstance(default_users.json, list)
 
-
     def test_fail_user_id_route(self):
         """Test /users/<user_id> GET failure"""
         user = self.app.get(self.api + "nop")
+        self.assertEqual(user.status_code, 404)
+
+    def test_delete_user_by_id_route(self):
+        """Test /users/<user_id> DELETE success"""
+        new_user = self.app.post(
+                self.api, json={
+                    "email": "test@example.com", "password": "password"})
+        user_id = new_user.json['id']
+        response = self.app.delete(self.api + user_id)
+        self.assertEqual(response.status_code, 200)
+        user = self.app.get(self.api + user_id)
         self.assertEqual(user.status_code, 404)
 
     def test_fail_delete_users_by_id_route(self):
         """Test /users/<user_id> DELETE failure"""
         user = self.app.delete(self.api + "nop")
         self.assertEqual(user.status_code, 404)
+
+    def test_create_user_missing_email(self):
+        """Test /users POST missing email"""
+        response = self.app.post(
+                self.api, json={"password": "password"})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json['error'], "Missing email")
+
+    def test_create_user_missing_password(self):
+        """Test /users POST missing password"""
+        response = self.app.post(
+                self.api, json={"email": "test@example.com"})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json['error'], "Missing password")

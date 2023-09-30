@@ -8,6 +8,8 @@ import web_flask
 import unittest
 from os import stat
 import api
+from api.v1.views import places_reviews
+
 module = api.v1.views.places_reviews
 
 

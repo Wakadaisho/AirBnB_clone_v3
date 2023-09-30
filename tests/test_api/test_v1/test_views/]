@@ -1,0 +1,113 @@
+#!/usr/bin/python3
+"""
+Unit Test for api v1 Flask App
+"""
+import inspect
+import pep8
+import web_flask
+import unittest
+from os import stat
+from models import storage
+from api.v1.app import app
+from api.v1.views import places_reviews
+
+
+class TestPlaces_ReviewsDocs(unittest.TestCase):
+    """Class for testing Hello Route docs"""
+
+    all_funcs = inspect.getmembers(module, inspect.isfunction)
+
+    @classmethod
+    def setUpClass(cls):
+        print('\n\n.................................')
+        print('..... Testing Documentation .....')
+        print('.......  Places_Reviews API  .......')
+        print('.................................\n\n')
+
+    def test_doc_file(self):
+        """... documentation for the file"""
+        actual = module.__doc__
+        self.assertIsNotNone(actual)
+
+    def test_all_function_docs(self):
+        """... tests for ALL DOCS for all functions"""
+        all_functions = TestPlaces_ReviewsDocs.all_funcs
+        for function in all_functions:
+            self.assertIsNotNone(function[1].__doc__)
+
+    def test_pep8(self):
+        """... tests if file conforms to PEP8 Style"""
+        pep8style = pep8.StyleGuide(quiet=True)
+        errors = pep8style.check_files(['api/v1/views/places_reviews.py'])
+        self.assertEqual(errors.total_errors, 0, errors.messages)
+
+    def test_file_is_executable(self):
+        """... tests if file has correct permissions so user can execute"""
+        file_stat = stat('api/v1/views/places_reviews.py')
+        permissions = str(oct(file_stat[0]))
+        actual = int(permissions[5:-2]) >= 5
+        self.assertTrue(actual)
+
+
+class TestPlaces_Reviews_Routes(unittest.TestCase):
+    """Class to test Review_places routes"""
+
+    def test_get_reviews_by_place(self):
+        """review by place route test"""
+        response = self.client.get(f'/api/v1/places/{self.place.id}/reviews')
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+        self.assertTrue(isinstance(data, list))
+
+    def test_get_reviews_by_place_404(self):
+        """ test a non exsistent place"""
+        response = self.client.get('/api/v1/places/non_existent_place/reviews')
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_review_by_id(self):
+        """test review by id"""
+        review = Review(user_id=self.user.id,
+                        place_id=self.place.id, text="Test review")
+        review.save()
+        response = self.client.get(f'/api/v1/reviews/{review.id}')
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+        self.assertEqual(data['id'], review.id)
+        self.assertEqual(data['user_id'], self.user.id)
+        self.assertEqual(data['place_id'], self.place.id)
+
+    def test_delete_review_by_id(self):
+        """test deelete review"""
+        review = Review(user_id=self.user.id,
+                        place_id=self.place.id, text="Test review")
+        review.save()
+        response = self.client.delete(f'/api/v1/reviews/{review.id}')
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(storage.get(Review, review.id))
+
+    def test_create_review(self):
+        """test review creation"""
+        data = {
+                "user_id": self.user.id,
+                "place_id": self.place.id,
+                "text": "Test review"
+                }
+        response = self.client.post('/api/v1/places/{self.place.id}/reviews',
+                                    json=data, content_type='application/json')
+        self.assertEqual(response.status_code, 201)
+        new_review = storage.get(Review, response.get_json()['id'])
+        self.assertIsNotNone(new_review)
+
+    def test_update_review_by_id(self):
+        """review update test"""
+        review = Review(user_id=self.user.id,
+                        place_id=self.place.id, text="Test review")
+        review.save()
+        data = {
+                "text": "Updated review"
+                }
+        response = self.client.put('/api/v1/reviews/{review.id}',
+                                   json=data, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        updated_review = storage.get(Review, review.id)
+        self.assertEqual(updated_review.text, "Updated review")

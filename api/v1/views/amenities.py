@@ -4,7 +4,7 @@ Define routes for the Amenity object
 """
 
 from api.v1.views import app_views
-from flask import abort, request
+from flask import abort, request, jsonify
 from models import storage
 from models.amenity import Amenity
 
@@ -12,7 +12,8 @@ from models.amenity import Amenity
 @app_views.route("/amenities")
 def get_all_amenities():
     """Return all the amenity objects"""
-    return [amenity.to_dict() for amenity in storage.all(Amenity).values()]
+    return jsonify([amenity.to_dict()
+                    for amenity in storage.all(Amenity).values()]), 200
 
 
 @app_views.route("/amenities/<amenity_id>")
@@ -21,7 +22,7 @@ def select_amenity(amenity_id):
     amenity = storage.get(Amenity, amenity_id)
     if not amenity:
         abort(404)
-    return amenity.to_dict()
+    return jsonify(amenity.to_dict()), 200
 
 
 @app_views.route("/amenities/<amenity_id>", methods=["DELETE"])
@@ -32,7 +33,7 @@ def drop_amenity(amenity_id):
         abort(404)
     amenity.delete()
     storage.save()
-    return {}, 200
+    return jsonify({}), 200
 
 
 @app_views.route("/amenities", methods=["POST"])
@@ -40,12 +41,12 @@ def insert_amenity():
     """Create a Amenity object"""
     obj = request.get_json()
     if not obj:
-        return {"error": "Not a JSON"}, 400
+        return jsonify({"error": "Not a JSON"}), 400
     if "name" not in obj:
-        return {"error": "Missing name"}, 400
+        return jsonify({"error": "Missing name"}), 400
     amenity = Amenity(**obj)
     amenity.save()
-    return amenity.to_dict(), 201
+    return jsonify(amenity.to_dict()), 201
 
 
 @app_views.route("/amenities/<amenity_id>", methods=["PUT"])
@@ -54,12 +55,12 @@ def update_amenity(amenity_id):
     attrs = ['name']
     obj = request.get_json()
     if not obj:
-        return {"error": "Not a JSON"}, 400
+        return jsonify({"error": "Not a JSON"}), 400
     amenity = storage.get(Amenity, amenity_id)
     if amenity is None:
         abort(404)
     for attr in attrs:
-        if attr in obj:
+        if attr in obj and attr not in ["id", "created_at", "updated_at"]:
             setattr(amenity, attr, obj[attr])
     amenity.save()
-    return amenity.to_dict(), 200
+    return jsonify(amenity.to_dict()), 200

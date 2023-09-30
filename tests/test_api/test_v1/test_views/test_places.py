@@ -9,6 +9,7 @@ from datetime import datetime
 import inspect
 from models import storage
 from models.city import City
+from models.state import State
 from models.place import Place
 from models.user import User
 import pep8
@@ -70,7 +71,9 @@ class TestStateRoutes(unittest.TestCase):
 
     def test_create_place_missing_fields(self):
         """Test /cities/<city_id>/places POST missing fields"""
-        city = City(name="Test City")
+        state = State(name="Test State")
+        state.save()
+        city = City(name="Test City", state_id=state.id)
         city.save()
         data = {"name": "New Place"}
         response = self.app.post(f"/api/v1/cities/{city.id}/places", json=data)

@@ -66,7 +66,7 @@ class TestAmenityRoutes(unittest.TestCase):
         storage.close()
 
     def setUp(self):
-        # Prepopulate some amenities
+        """Prepopulate some amenities"""
         self.amenities = [self.app.post(self.api,
                                         json={"name": f"Amenity {i}"}).json
                           for i in range(0, 5)]

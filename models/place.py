@@ -3,7 +3,6 @@
 import models
 from models.base_model import BaseModel, Base
 from os import getenv
-import sqlalchemy
 from sqlalchemy import Column, String, Integer, Float, ForeignKey, Table
 from sqlalchemy.orm import relationship
 
@@ -39,3 +38,46 @@ class Place(BaseModel, Base):
                                  backref="place_amenities",
                                  viewonly=False)
 
+    def __init__(self, *args, **kwargs):
+        """initializes Place"""
+        super().__init__(*args, **kwargs)
+
+    if models.storage_t != 'db':
+        @property
+        def reviews(self):
+            """getter attribute returns the list of Review instances"""
+            from models.review import Review
+            review_list = []
+            all_reviews = models.storage.all(Review)
+            for review in all_reviews.values():
+                if review.place_id == self.id:
+                    review_list.append(review)
+            return review_list
+
+        @property
+        def amenities(self):
+            """The amenity getter."""
+            return self.amenity_ids
+
+        @amenities.setter
+        def amenities(self, value=None):
+            """ The Amenity setter appends ids to the attributes"""
+            from models.amenity import Amenity
+            from models import storage
+            if isinstance(value, list):
+                self.amenity_ids = value.copy()
+            else:
+                amenity = storage.get(Amenity, value.id)
+                if amenity and value.id not in self.amenity_ids:
+                    self.amenity_ids.append(value.id)
+
+        def to_dict(self):
+            """returns a dictionary containing all
+            keys/values of the instance"""
+            new_dict = super().to_dict()
+            if len(self.amenities):
+                new_dict.update({'amenity_ids': self.amenities})
+            else:
+                new_dict.pop('amenity_ids', None)
+
+            return new_dict

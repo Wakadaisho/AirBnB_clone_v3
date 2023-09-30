@@ -66,7 +66,7 @@ class TestCityRoutes(unittest.TestCase):
         storage.close()
 
     def setUp(self):
-        # Create some states for cities and prepopulate
+        """Create some states for cities and prepopulate"""
         self.state_1 = self.app.post(self.api + "/states",
                                      json={"name": "Test State 1"})
         self.state_2 = self.app.post(self.api + "/states",

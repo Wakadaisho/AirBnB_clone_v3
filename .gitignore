@@ -1,3 +1,5 @@
 file.json
 __pycache__/
 *.pyc
+10-dump.sql
+100-dump.sql

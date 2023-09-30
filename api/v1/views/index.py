@@ -14,13 +14,13 @@ from models.state import State
 from models.user import User
 
 
-@app_views.route("/status", strict_slashes=False)
+@app_views.route("/status")
 def status():
     """Return the operational status of the api endpoint"""
     return jsonify({"status": "OK"}), 200
 
 
-@app_views.route("/stats", strict_slashes=False)
+@app_views.route("/stats")
 def stats():
     """Return the operational status of the api endpoint"""
     classes = {"amenities": Amenity, "cities": City,

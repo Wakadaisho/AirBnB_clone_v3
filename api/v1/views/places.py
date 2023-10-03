@@ -83,7 +83,8 @@ def update_place_by_id(place_id):
 def search_places_by_id():
     """ search places by id """
     data = request.get_json()
-    if not data:
+
+    if not data and type(data) is not dict:
         return make_response(jsonify({"error": "Not a JSON"}), 400)
 
     states = data.get('states', [])
@@ -92,7 +93,7 @@ def search_places_by_id():
     places = []
 
     if (len(states) + len(cities)) == 0:
-        places = [place.to_dict() for place in storage.all(Place).values()]
+        places = [place for place in storage.all(Place).values()]
     else:
         cities = {storage.get(City, i) for i in cities if storage.get(City, i)}
         cities = cities.union({city
@@ -104,16 +105,17 @@ def search_places_by_id():
                   for city in cities
                   for place in city.places]
 
-        if storage_t == 'db':
-            places = [place.to_dict() for place in places
-                      if all([amenity in [am.to_dict()['id']
-                                          for am in place.amenities]
-                              for amenity in amenities])]
-        else:
-            places = [place.to_dict() for place in places
-                      if all([amenity in [am for am in place.amenities]
-                              for amenity in amenities])]
+    if storage_t == 'db':
+        places = [place.to_dict() for place in places
+                  if all([amenity in [am.to_dict()['id']
+                                      for am in place.amenities]
+                          for amenity in amenities])]
+    else:
+        places = [place.to_dict() for place in places
+                  if all([amenity in [am for am in place.amenities]
+                          for amenity in amenities])]
 
     for place in places:
         place.pop("amenities", None)
+    places = [] if not places else places
     return jsonify(places)

@@ -105,6 +105,11 @@ class TestUserRoutes(unittest.TestCase):
         self.assertEqual(results.status_code, 400)
         self.assertEqual(results.json['error'], "Not a JSON")
 
+        results = self.app.post("/api/v1/places_search",
+                                json={})
+        self.assertEqual(results.status_code, 200)
+        self.assertIsInstance(results.json, list)
+
         states = []
         for i in range(2):
             state = State(name=f"State {i}")
@@ -123,7 +128,7 @@ class TestUserRoutes(unittest.TestCase):
 
         amenities = []
         for i in range(50):
-            amenity = Amenity(name=f"Amentiy {i}")
+            amenity = Amenity(name=f"Amenity {i}")
             amenity.save()
             amenities.append(amenity)
 
@@ -144,24 +149,35 @@ class TestUserRoutes(unittest.TestCase):
         results = self.app.post("/api/v1/places_search",
                                 json={"states": [states[0]],
                                       "cities": [cities[3]]})
+
         self.assertEqual(results.status_code, 200)
         self.assertEqual(len(results.json), 7)
-        filter_amenities = [amenities[randrange(len(amenities))].id
-                            for _ in range(10)]
+        filter_amenities = [amenities[randrange(5)].id
+                            for _ in range(5)]
         results = self.app.post("/api/v1/places_search",
                                 json={"states": [states[0]],
                                       "cities": [cities[3]],
-                                      "amenities": filter_amenities})
+                                      "amenities": filter_amenities
+                                      })
         self.assertEqual(results.status_code, 200)
-        places = [storage.get(Place, id)
-                  for id in [place.id for place in results.json]]
-        if storage_t == 'db':
-            self.assertTrue(
-                    all([amenity in [am.to_dict().id for am in place.amenities]
-                         for amenity in filter_amenities
-                         for place in places]))
-        else:
-            self.assertTrue(
-                    all([amenity in [am for am in place.amenities]
-                         for amenity in filter_amenities
-                         for place in places]))
+        places = [storage.get(Place, place['id']) for place in results.json]
+        for place in places:
+            for am in filter_amenities:
+                if storage_t == 'db':
+                    self.assertTrue(
+                            am in [a.to_dict()['id'] for a in place.amenities])
+                else:
+                    self.assertTrue(am in place.amenities)
+
+        results = self.app.post("/api/v1/places_search",
+                                json={"amenities": filter_amenities[0:1]})
+        self.assertEqual(results.status_code, 200)
+        places = [storage.get(Place, place['id']) for place in results.json]
+
+        for place in places:
+            for am in filter_amenities[0:1]:
+                if storage_t == 'db':
+                    self.assertTrue(
+                            am in [a.to_dict()['id'] for a in place.amenities])
+                else:
+                    self.assertTrue(am in place.amenities)

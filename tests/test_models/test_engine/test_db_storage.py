@@ -70,7 +70,13 @@ test_db_storage.py'])
 
 
 class TestDBStorage(unittest.TestCase):
-    """Test the FileStorage class"""
+    """Test the Db storage class"""
+    @classmethod
+    def setUpClass(cls):
+        """Set up the test environment"""
+        cls.storage = DBStorage()
+        cls.storage.reload()
+
     @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
     def test_all_returns_dict(self):
         """Test that all returns a dictionaty"""
@@ -91,11 +97,11 @@ class TestDBStorage(unittest.TestCase):
     @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
     def test_count(self):
         """Test that count returns correct number of items"""
-        general_count = storage.count()
-        state_count = storage.count(State)
-        city_count = storage.count(City)
+        general_count = self.storage.count()
+        state_count = self.storage.count(State)
+        city_count = self.storage.count(City)
 
-        state = State(name="New State")
+        state = State(name="NewS")
         state.save()
 
         # All objects count increment
@@ -103,17 +109,17 @@ class TestDBStorage(unittest.TestCase):
         # State objects count increment
         self.assertEqual(state_count + 1, storage.count(State))
         # City objects count stays the same
-        self.assertEqual(storage.count(City), city_count)
-        storage.close()
+        self.assertEqual(self.storage.count(City), city_count)
+        self.storage.close()
 
     @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
     def test_get(self):
         """Test that get returns correct object by id"""
-        state = State(name="This is a cool State")
+        state = State(name="Swiss")
         state.save()
 
-        get_state = storage.get(State, state.id)
+        get_state = self.storage.get(State, state.id)
 
         self.assertEqual(state.id, get_state.id)
-        self.assertEqual(get_state.name, "This is a cool State")
-        storage.close()
+        self.assertEqual(get_state.name, "Swiss")
+        self.storage.close()

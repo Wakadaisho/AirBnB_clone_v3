@@ -68,7 +68,8 @@ class TestAmenityRoutes(unittest.TestCase):
     def setUp(self):
         """Prepopulate some amenities"""
         self.amenities = [self.app.post(self.api,
-                                        json={"name": f"Amenity {i}"}).json
+                                        json={"name":
+                                              "Amenity {}".format(i)}).json
                           for i in range(0, 5)]
 
     def test_amenities_route(self):
